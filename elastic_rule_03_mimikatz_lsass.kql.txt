@@ -1,0 +1,37 @@
+// ============================================================
+// RULE: Mimikatz / Credential Dumping Detection
+// FILE: elastic_rule_03_mimikatz_lsass.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Process accessing LSASS memory (credential dumping technique).
+//
+// WHY THIS MATTERS:
+// - After compromising a system, attackers dump passwords from memory.
+// - This is a CRITICAL alert - credentials are being stolen.
+//
+// MITRE ATT&CK: T1003.001 - OS Credential Dumping: LSASS Memory
+// SEVERITY: Critical
+// ============================================================
+
+event.code: "10"
+and winlog.event_data.TargetImage: "*\\lsass.exe"
+and winlog.event_data.GrantedAccess: "0x1fffff"
+
+// EXPLANATION:
+// - event.code "10" = Sysmon ProcessAccess event
+// - TargetImage ends with lsass.exe = accessing LSASS process
+// - GrantedAccess 0x1fffff = PROCESS_ALL_ACCESS (full control)
+//
+// WHAT IS LSASS?
+//   Local Security Authority Subsystem Service - stores password hashes
+//   Normal processes should NEVER access LSASS with full permissions
+//
+// FALSE POSITIVES:
+//   VERY RARE - legitimate backup or AV tools (investigate anyway)
+//
+// RESPONSE (IMMEDIATE):
+// 1. ISOLATE the host from network
+// 2. Capture memory for forensics
+// 3. Assume attacker has domain admin access
+// 4. Reset ALL domain passwords

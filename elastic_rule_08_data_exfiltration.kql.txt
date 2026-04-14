@@ -1,0 +1,44 @@
+// ============================================================
+// RULE: Data Exfiltration Detection
+// FILE: elastic_rule_08_data_exfiltration.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Large outbound data transfers to external IPs.
+//
+// WHY THIS MATTERS:
+// - After stealing data, attackers need to exfiltrate it.
+// - Catching exfiltration prevents data breach impact.
+//
+// MITRE ATT&CK: TA0010 - Exfiltration
+// SEVERITY: Critical
+// ============================================================
+
+network.direction: "outbound"
+and destination.ip: (not 10.0.0.0/8 and not 172.16.0.0/12 and not 192.168.0.0/16)
+and network.bytes_out: >1000000000
+
+// AGGREGATION:
+// - Time window: 10 minutes
+// - Threshold: sum(bytes_out) > 1GB
+
+// EXPLANATION:
+// - outbound traffic = data leaving your network
+// - destination NOT internal IPs = going to internet
+// - bytes_out > 1GB = large data transfer
+//
+// INTERNAL IP RANGES (excluded):
+//   10.0.0.0/8 = private network
+//   172.16.0.0/12 = private network
+//   192.168.0.0/16 = private network
+//
+// FALSE POSITIVES:
+// - Legitimate cloud backups (whitelist known IPs)
+// - Large file transfers to partners
+// - Software updates
+//
+// RESPONSE:
+// 1. Identify destination IP (threat intel lookup)
+// 2. Check what data was sent (file names, types)
+// 3. Block destination IP
+// 4. Initiate breach response if sensitive data

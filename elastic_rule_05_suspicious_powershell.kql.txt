@@ -1,0 +1,33 @@
+// ============================================================
+// RULE: Suspicious PowerShell Command Detection
+// FILE: elastic_rule_05_suspicious_powershell.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: PowerShell execution with encoded commands or download cradle patterns.
+//
+// WHY THIS MATTERS:
+// - Attackers use PowerShell to download malware without touching disk.
+// - Encoded commands hide malicious intent from basic logging.
+//
+// MITRE ATT&CK: T1059.001 - Command and Scripting Interpreter: PowerShell
+// SEVERITY: High
+// ============================================================
+
+process.name: "powershell.exe"
+and process.command_line: (*-enc* or *-encodedcommand* or *IEX* or *Invoke-Expression* or *Net.WebClient* or *DownloadString*)
+
+// EXPLANATION:
+// - -enc / -encodedcommand = Base64 encoded PowerShell (hides intent)
+// - IEX / Invoke-Expression = executes strings as code (common in malware)
+// - Net.WebClient.DownloadString = downloads content from internet
+//
+// FALSE POSITIVES:
+// - Legitimate admin scripts (check command line for known good patterns)
+// - Some deployment tools (whitelist known servers)
+//
+// RESPONSE:
+// 1. Capture full command line
+// 2. Decode Base64 if present (powershell -enc [command])
+// 3. Check network connections from this host
+// 4. Review parent process (how was PowerShell launched?)

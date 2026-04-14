@@ -1,0 +1,45 @@
+// ============================================================
+// RULE: Unauthorized RDP Access Attempt
+// FILE: elastic_rule_06_rdp_bruteforce.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Multiple failed RDP login attempts from same source.
+//
+// WHY THIS MATTERS:
+// - RDP is a top attack vector for ransomware deployment.
+// - BlueKeep vulnerability (CVE-2019-0708) made RDP even more dangerous.
+//
+// MITRE ATT&CK: T1110 - Brute Force, T1021.001 - Remote Services: RDP
+// SEVERITY: High
+// ============================================================
+
+event.code: "4625"
+and winlog.event_data.LogonType: "10"
+and winlog.event_data.SubjectUserName: "*"
+
+// AGGREGATION:
+// - Group by: winlog.event_data.IpAddress
+// - Threshold: count() > 20
+// - Time window: 5 minutes
+
+// EXPLANATION:
+// - event.code 4625 = failed logon (Windows Security Event)
+// - LogonType 10 = Remote Interactive (RDP)
+// - SubjectUserName tracks which account was targeted
+//
+// LOGON TYPES REFERENCE:
+//   2 = Interactive (local console)
+//   3 = Network (SMB, file share)
+//   10 = Remote Interactive (RDP)
+//   11 = Cached Interactive
+//
+// FALSE POSITIVES:
+// - Help desk testing accounts
+// - Users with multiple failed password attempts
+//
+// RESPONSE:
+// 1. Block source IP at firewall
+// 2. Check if any LogonType 10 success after failures
+// 3. Enforce MFA for RDP
+// 4. Consider moving RDP behind VPN

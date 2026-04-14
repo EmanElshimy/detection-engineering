@@ -1,0 +1,37 @@
+// ============================================================
+// RULE: SQL Injection Attempt Detection
+// FILE: elastic_rule_04_sql_injection.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Web requests containing SQL injection patterns.
+//
+// WHY THIS MATTERS:
+// - SQL injection can leak entire databases (customer data, credentials).
+// - OWASP Top 10 #1 most critical web vulnerability.
+//
+// MITRE ATT&CK: T1190 - Exploit Public-Facing Application
+// SEVERITY: High
+// ============================================================
+
+http.request.method: (GET or POST)
+and http.request.uri: (*union* or *select* or *drop* or *insert* or *--* or *%27* or *or 1=1*)
+
+// EXPLANATION:
+// - Looks at HTTP GET and POST requests
+// - Checks URI for SQL attack patterns:
+//   * union, select, drop, insert = SQL commands
+//   * -- = comment injection
+//   * %27 = URL-encoded single quote
+//   * or 1=1 = tautology attack
+//
+// FALSE POSITIVES:
+// - Security scanners (check User-Agent)
+// - Applications with legitimate SQL in URLs (rare)
+// - API endpoints with "select" as parameter name
+//
+// RESPONSE:
+// 1. Review the full request payload
+// 2. Check web server logs for response status
+// 3. If successful injection detected -> INCIDENT RESPONSE
+// 4. Add source IP to blocklist

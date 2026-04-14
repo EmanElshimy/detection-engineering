@@ -1,0 +1,41 @@
+// ============================================================
+// RULE: Privilege Escalation - New Admin User Created
+// FILE: elastic_rule_09_new_admin_created.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS:
+//   New user added to Administrators group.
+//
+// WHY THIS MATTERS:
+//   After gaining initial access, attackers create admin accounts.
+//   This gives them persistent privileged access.
+//
+// MITRE ATT&CK: T1136.001 - Create Account: Local Account
+// SEVERITY: Critical
+// ============================================================
+
+event.code: "4732"
+and winlog.event_data.TargetUserName: "Administrators"
+and winlog.event_data.MemberName: "*"
+
+// EXPLANATION:
+// - event.code 4732 = member added to security-enabled local group
+// - TargetUserName "Administrators" = the Administrators group
+// - MemberName = the user being added
+//
+// WHAT TO CHECK:
+// - Is this a known IT admin account?
+// - Was this done by a legitimate process?
+// - Is the account name suspicious (e.g., temp, backup, helpdesk)?
+//
+// FALSE POSITIVES:
+// - Legitimate IT adding new admin (verify with change request)
+// - Software installation requiring admin rights
+// - Automated deployment scripts
+//
+// RESPONSE (CRITICAL):
+// 1. IMMEDIATELY remove the new admin account
+// 2. Investigate who created it (look at event 4732 SubjectUserName)
+// 3. Check for other persistence mechanisms
+// 4. Assume host is compromised

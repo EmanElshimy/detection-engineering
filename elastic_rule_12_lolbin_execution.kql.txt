@@ -1,0 +1,53 @@
+// ============================================================
+// RULE: LOLBin (Living Off the Land Binary) Execution
+// FILE: elastic_rule_12_lolbin_execution.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Execution of Windows administrative tools with suspicious arguments.
+//
+// WHY THIS MATTERS:
+// - Attackers use built-in Windows tools to avoid detection.
+// - These tools are legitimate but malicious when used with certain flags.
+//
+// MITRE ATT&CK: T1218 - Signed Binary Proxy Execution
+// SEVERITY: Medium-High
+// ============================================================
+
+process.name: (
+  "rundll32.exe" or "regsvr32.exe" or "mshta.exe" or "certutil.exe" or
+  "wmic.exe" or "cscript.exe" or "wscript.exe" or "msiexec.exe" or
+  "reg.exe" or "schtasks.exe" or "powershell.exe"
+)
+and process.command_line: (
+  "*http://*" or "*https://*" or "*javascript:*" or "*vbscript:*" or
+  "*-urlcache*" or "*-decode*" or "*scrobj.dll*" or "*-e* JAB*" or
+  "*-enc* JAB*" or "*Invoke-*"
+)
+
+// EXPLANATION:
+// - Looks for Windows built-in admin tools (LOLBins)
+// - Suspicious patterns in command line:
+//   * http/https = downloading from internet
+//   * javascript/vbscript = script execution
+//   * -urlcache, -decode = certutil downloading
+//   * JAB* = Base64 encoded PowerShell (starts with JAB)
+//   * Invoke- = PowerShell cmdlet (often malicious)
+//
+// COMMON LOLBins AND THEIR ABUSE:
+//   rundll32.exe: can execute JavaScript
+//   regsvr32.exe: can download and run COM scripts
+//   mshta.exe: can execute JavaScript from remote URLs
+//   certutil.exe: can download files
+//   wmic.exe: can execute commands remotely
+//
+// FALSE POSITIVES:
+// - Legitimate admin scripts (check source)
+// - Software update mechanisms
+// - IT automation tools
+//
+// RESPONSE:
+// 1. Investigate the full command line
+// 2. Check if the process made network connections
+// 3. Look for parent process (what launched it?)
+// 4. Review any downloaded files

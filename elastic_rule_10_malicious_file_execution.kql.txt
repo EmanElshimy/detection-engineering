@@ -1,0 +1,42 @@
+// ============================================================
+// RULE: Malicious File Extension Execution
+// FILE: elastic_rule_10_malicious_file_execution.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Execution of files with suspicious extensions from user directories.
+//
+// WHY THIS MATTERS:
+// - Attackers rename malware to look like legitimate files.
+// - These extensions are rarely legitimate in user folders.
+//
+// MITRE ATT&CK: T1204 - User Execution
+// SEVERITY: High
+// ============================================================
+
+process.path: (*Users* or *Temp* or *Downloads*)
+and process.name: (*.scr or *.cpl or *.vbs or *.js or *.ps1 or *.bat or *.cmd or *.jar)
+
+// EXPLANATION:
+// - Looks at processes running from user-writable locations
+// - Suspicious extensions:
+//   *.scr = screensaver (common malware disguise)
+//   *.cpl = control panel item (can execute code)
+//   *.vbs, *.js = scripting files (often malicious)
+//   *.ps1 = PowerShell script
+//   *.bat, *.cmd = batch files
+//   *.jar = Java archive (can be malicious)
+//
+// WHY USER FOLDERS ARE SUSPICIOUS:
+//   Legitimate software installs to Program Files or Windows
+//   Malware runs from user directories to bypass permissions
+//
+// FALSE POSITIVES:
+// - Developer running scripts from their workspace
+// - Legitimate software that runs from AppData (some do)
+//
+// RESPONSE:
+// 1. Examine file hash on VirusTotal
+// 2. Check network connections from this process
+// 3. Review parent process (how was it launched?)
+// 4. Quarantine file if malicious

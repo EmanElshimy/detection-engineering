@@ -1,0 +1,40 @@
+// ============================================================
+// RULE: Persistence via Scheduled Task Creation
+// FILE: elastic_rule_07_scheduled_task_persistence.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: New scheduled task creation pointing to suspicious locations.
+//
+// WHY THIS MATTERS:
+// - Attackers create scheduled tasks to survive reboots.
+// - This is a common persistence mechanism in ransomware attacks.
+//
+// MITRE ATT&CK: T1053.005 - Scheduled Task/Job: Scheduled Task
+// SEVERITY: High
+// ============================================================
+
+event.code: "4698"
+and winlog.event_data.TaskContent: (*Users\* or *Temp\* or *AppData\* or *Public\*)
+
+// EXPLANATION:
+// - event.code 4698 = scheduled task created (Windows Security Event)
+// - TaskContent contains the XML of the scheduled task
+// - Suspicious paths:
+//   * Users\ = user-writable location
+//   * Temp\ = temporary folder (unusual for scheduled tasks)
+//   * AppData\ = per-user application data
+//   * Public\ = publicly writable folder
+//
+// LEGITIMATE SCHEDULED TASKS:
+//   Usually live in: C:\Windows\System32\Tasks\ or C:\Program Files\
+//
+// FALSE POSITIVES:
+// - Software installers creating tasks (check publisher)
+// - Antivirus update tasks (known good paths)
+//
+// RESPONSE:
+// 1. Examine task content (what does it execute?)
+// 2. Check task creation time against other events
+// 3. Review parent process that created the task
+// 4. Delete if malicious

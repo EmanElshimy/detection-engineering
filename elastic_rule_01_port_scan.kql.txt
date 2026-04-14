@@ -1,0 +1,33 @@
+// ============================================================
+// RULE: Port Scan Detection
+// FILE: elastic_rule_01_port_scan.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: An attacker scanning multiple ports on the same host quickly.
+//
+// WHY THIS MATTERS:
+// - Port scanning is the FIRST step of most attacks (reconnaissance).
+// - Detecting this early can stop an attack before it escalates.
+//
+// MITRE ATT&CK: T1046 - Network Service Scanning
+// SEVERITY: Medium
+// ============================================================
+
+network.protocol: tcp 
+and destination.ports: >15 
+and event.duration: <100ms
+
+// EXPLANATION:
+// - Looks for TCP traffic only (common scanning protocol)
+// - destination.ports >15 means 15+ unique ports in the time window
+// - event.duration <100ms means connections are very fast (automated scan)
+//
+// FALSE POSITIVES:
+// - Legitimate vulnerability scanners (whitelist these IPs)
+// - Some legitimate applications that check multiple ports
+//
+// RESPONSE:
+// 1. Investigate source IP
+// 2. If malicious, block at firewall
+// 3. Add to watchlist for 24 hours

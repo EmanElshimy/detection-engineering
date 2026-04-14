@@ -1,0 +1,45 @@
+// ============================================================
+// RULE: Impossible Travel Detection
+// FILE: elastic_rule_11_impossible_travel.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Same user logging in from geographically impossible locations.
+//
+// WHY THIS MATTERS:
+// - If a user logs in from Sydney then London 1 hour later,
+// - someone has stolen their credentials.
+//
+// MITRE ATT&CK: T1078 - Valid Accounts
+// SEVERITY: Critical
+// ============================================================
+
+event.code: "4624"
+and winlog.event_data.LogonType: ("2" or "10")
+
+// AGGREGATION (requires GeoIP enrichment):
+// - Group by: user.name
+// - Look for logins from locations >2 hours travel apart
+// - Within 2 hour time window
+
+// EXPLANATION:
+// - 4624 = successful logon (Windows Security Event)
+// - LogonType 2 = local console, 10 = RDP
+// - Need GeoIP database to map IP to city/country
+//
+// HOW IT WORKS:
+//   1. User logs in from IP 1.2.3.4 (Sydney)
+//   2. User logs in from IP 5.6.7.8 (London) 30 minutes later
+//   3. Sydney to London is 22 hours flight - IMPOSSIBLE
+//   4. ALERT: Credentials stolen!
+//
+// FALSE POSITIVES:
+// - VPN users (IP shows VPN exit location, not user location)
+// - Cloud proxy services
+// - Users who actually travel (check flight times)
+//
+// RESPONSE (IMMEDIATE):
+// 1. Force password reset for the user
+// 2. Revoke all active sessions
+// 3. Check for other compromised accounts
+// 4. Enable MFA immediately

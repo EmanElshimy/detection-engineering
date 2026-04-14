@@ -1,0 +1,39 @@
+// ============================================================
+// RULE: SSH Brute Force Detection
+// FILE: elastic_rule_02_ssh_bruteforce.kql
+// AUTHOR: Eman Elshimy
+// DATE: 2026
+// ============================================================
+// WHAT IT DETECTS: Multiple failed SSH login attempts from same source IP.
+//
+// WHY THIS MATTERS:
+// - Brute force is the most common way attackers gain initial access.
+// - Catching this early prevents account compromise.
+//
+// MITRE ATT&CK: T1110 - Brute Force
+// SEVERITY: High
+// ============================================================
+
+event.dataset: "zeek.ssh"
+and event.action: "failed"
+and source.ip: *
+
+// AGGREGATION (add in Elastic rule UI):
+// - Group by: source.ip
+// - Threshold: count() > 10
+// - Time window: 5 minutes
+
+// EXPLANATION:
+// - Looks at Zeek SSH logs only
+// - Filters for failed authentication events
+// - Counts failures per source IP
+// - Alerts if 10+ failures in 5 minutes
+//
+// FALSE POSITIVES:
+// - Legitimate user with forgotten password (check username patterns)
+// - Automated deployment scripts (whitelist known IPs)
+//
+// RESPONSE:
+// 1. Block source IP immediately
+// 2. Check if any successful login after failures
+// 3. Reset compromised account passwords
