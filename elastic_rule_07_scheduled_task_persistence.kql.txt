@@ -4,6 +4,7 @@
 // WHY THIS MATTERS:
 //    - Attackers create scheduled tasks to survive reboots.
 //    - This is a common persistence mechanism in ransomware attacks.
+// MITRE ATT&CK: T1053.005 - Scheduled Task/Job: Scheduled Task
 // ============================================================
 
 event.code: "4698"
