@@ -4,6 +4,7 @@
 // WHY THIS MATTERS:
 //    - Attackers use PowerShell to download malware without touching disk.
 //    - Encoded commands hide malicious intent from basic logging.
+// MITRE ATT&CK: T1059.001 - Command and Scripting Interpreter: PowerShell
 // ============================================================
 
 process.name: "powershell.exe"
