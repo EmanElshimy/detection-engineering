@@ -4,6 +4,7 @@
 // WHY THIS MATTERS:
 //    - RDP is a top attack vector for ransomware deployment.
 //    - BlueKeep vulnerability (CVE-2019-0708) made RDP even more dangerous.
+// MITRE ATT&CK: T1110 - Brute Force, T1021.001 - Remote Services: RDP
 // ============================================================
 
 event.code: "4625"
