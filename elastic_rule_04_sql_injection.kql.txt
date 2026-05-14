@@ -4,6 +4,7 @@
 // Why this matters:
 //    - SQL injection can leak entire databases (customer data, credentials).
 //    - OWASP Top 10 #1 most critical web vulnerability.
+// MITRE ATT&CK: T1190 - Exploit Public-Facing Application
 // ============================================================
 
 http.request.method: (GET or POST)
