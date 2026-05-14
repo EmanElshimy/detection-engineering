@@ -4,6 +4,7 @@
 // Why this matters:
 //    - Port scanning is the FIRST step of most attacks (reconnaissance).
 //    - Detecting this early can stop an attack before it escalates.
+// MITRE ATT&CK: T1046 - Network Service Scanning
 // ============================================================
 
 network.protocol: tcp 
