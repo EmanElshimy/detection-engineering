@@ -4,6 +4,7 @@
 // Why this matters:
 //    - After compromising a system, attackers dump passwords from memory.
 //    - This is a CRITICAL alert - credentials are being stolen.
+// MITRE ATT&CK: T1003.001 - OS Credential Dumping: LSASS Memory
 // ============================================================
 
 event.code: "10"
